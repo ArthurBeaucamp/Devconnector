@@ -5,6 +5,8 @@ const router = express.Router();
 
 // Load Valdiation
 const validateProfileInput = require('../../validation/profile');
+const validateExperienceInput = require('../../validation/experience');
+const validateEducationInput = require('../../validation/education');
 
 // Load Models
 const Profile = require('../../models/Profile');
@@ -173,6 +175,82 @@ router.post(
                 .then(profileField => res.json(profileField));
             });
         }
+      });
+    return true;
+  },
+);
+
+/**
+ * @route   POST api/profile/experience
+ * @desc    Add experience to profile
+ * @access  Private
+ */
+router.post(
+  '/experience',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const { errors, isValid } = validateExperienceInput(req.body);
+
+    // Check Validation
+    if (!isValid) {
+      // Return any errors with 400 status
+      return res.status(400).json(errors);
+    }
+
+    Profile.findOne({ user: req.user.id })
+      .then((profile) => {
+        const newExp = {
+          title: req.body.title,
+          company: req.body.company,
+          location: req.body.location,
+          from: req.body.from,
+          to: req.body.to,
+          current: req.body.current,
+          description: req.body.description,
+        };
+
+        // Add to exp array
+        profile.experience.unshift(newExp);
+
+        profile.save().then(profileSave => res.json(profileSave));
+      });
+    return true;
+  },
+);
+
+/**
+ * @route   POST api/profile/education
+ * @desc    Add education to profile
+ * @access  Private
+ */
+router.post(
+  '/education',
+  passport.authenticate('jwt', { session: false }),
+  (req, res) => {
+    const { errors, isValid } = validateEducationInput(req.body);
+
+    // Check Validation
+    if (!isValid) {
+      // Return any errors with 400 status
+      return res.status(400).json(errors);
+    }
+
+    Profile.findOne({ user: req.user.id })
+      .then((profile) => {
+        const newEdu = {
+          school: req.body.school,
+          degree: req.body.degree,
+          fieldofstudy: req.body.fieldofstudy,
+          from: req.body.from,
+          to: req.body.to,
+          current: req.body.current,
+          description: req.body.description,
+        };
+
+        // Add to exp array
+        profile.education.unshift(newEdu);
+
+        profile.save().then(profileSave => res.json(profileSave));
       });
     return true;
   },
